@@ -19,10 +19,10 @@ func main() {
 
     mainUrl := args[1]
 
-    fmt.Printf("Reading %s/sitemap.txt",mainUrl)
+    fmt.Printf("Reading %s",mainUrl)
     fmt.Println("")
 
-    resp, err := http.Get(mainUrl + "/sitemap.txt")
+    resp, err := http.Get(mainUrl)
 
     if err != nil {
         fmt.Println("Error!")
@@ -41,7 +41,7 @@ func main() {
 
     crawlCache := strings.Split(bodyStr, "\n")
 
-    duration := time.Duration(3) * time.Second
+    duration := time.Duration(300) * time.Millisecond
 
     for _, url := range crawlCache {
         plainUrl := strings.Replace(url, "https", "http", 1)
