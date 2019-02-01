@@ -1,8 +1,8 @@
 package main
 
 import (
-    "os"
     "fmt"
+    "flag"
     "net/http"
     "io/ioutil"
     "strings"
@@ -12,13 +12,18 @@ import (
 )
 
 func main() {
-    args := os.Args
+    forceHttp := flag.Bool("http", false, "Force http on crawl")
+    waitTime := flag.Int("wait", 300, "Nmber of Miliseconds to wait")
+    userAgent := flag.String("user-agent", "VeriCrawl bot/1.0", "User-Agent header to pass to client")
+    flag.Parse()
 
-    if len(args) < 2 {
+    args := flag.Args()
+
+    if len(args) < 1 {
       panic("No url passed in")
     }
 
-    mainUrl := args[1]
+    mainUrl := args[0]
 
     fmt.Printf("Reading %s",mainUrl)
     fmt.Println("")
@@ -31,7 +36,7 @@ func main() {
     if err != nil {
       panic(err)
     }
-    req.Header.Set("User-Agent", "F+T VeriCrawl bot/1.0")
+    req.Header.Set("User-Agent", *userAgent)
 
     resp, err := client.Do(req)
 
@@ -49,11 +54,14 @@ func main() {
     bodyStr := string(body)
     crawlCache := strings.Split(bodyStr, "\n")
 
-    duration := time.Duration(300) * time.Millisecond
+    duration := time.Duration(*waitTime) * time.Millisecond
     var badHtmlTest = regexp.MustCompile(`&lt;.*&gt;`)
     var okHtmlTest = regexp.MustCompile(`[a-z-]*=".*&lt;.*&gt;.*"`)
     for _, url := range crawlCache {
-        plainUrl := strings.Replace(url, "https", "http", 1)
+        plainUrl := url
+        if *forceHttp {
+            plainUrl = strings.Replace(url, "https", "http", 1)
+        }
         subReq, err := http.NewRequest("GET", plainUrl, nil)
         subReq.Header.Set("User-Agent", "F+T VeriCrawl bot/1.0")
 
